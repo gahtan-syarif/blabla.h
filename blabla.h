@@ -88,7 +88,7 @@ private:
 	uint64_t block[16];
 	uint64_t block_idx;
 
-	uint64_t keysetup[8];
+	uint64_t keysetup[4];
 	uint64_t ctr;
 };
 
