@@ -1,0 +1,1 @@
+C++ implementation of JP Aumasson's (BlaBla)[https://github.com/veorq/blabla/blob/master/BlaBla.swift] PRNG (64-bit version of ChaCha based on Blake2b). Should run faster than ChaCha for 64-bit systems.
