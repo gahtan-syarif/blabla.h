@@ -1,25 +1,25 @@
 /*
- * A C++ version of Jean-Philippe Aumasson's BlaBla PRNG (modified from Orson Peters 'chacha.h' original code)
- *
- * Changes Copyright (c) 2024 Gahtan Syarif Nahdi, licence as below.
- *
- * Changes compared to Orson Peters original code:
- *   - Changed word size from 32-bits to 64-bits
- *	 - Changed round loop increment from 2 to 1
- *	 - Changed matrix and rotational constants
- *	 - Changed rotation direction from left to right
- *   - Rename class, functions, and variables
- *	 - Removed SIMD intrinsics for simplicity
- *	 - Replaced macros with functions
- *	 - Added header guards
- *	 - Added default round value of 10
- *   - Added default seed value and changed the default stream
- *   - Added namespace
- *	 - Changed starting block index from 0 to 1
- *	 - Changed iterator variable type to uint
- *	 - Revised keysetup and seed sequence generation
- *
- * Original version of the code can be found at https://gist.github.com/orlp/32f5d1b631ab092608b1
+	A C++ version of Jean-Philippe Aumasson's BlaBla PRNG (modified from Orson Peters 'chacha.h' original code)
+ 
+	Changes Copyright (c) 2024 Gahtan Syarif Nahdi, licence as below.
+	
+	Changes compared to Orson Peters original code:
+		- Changed word size from 32-bits to 64-bits
+		- Changed round loop increment from 2 to 1
+		- Changed matrix and rotational constants
+		- Changed rotation direction from left to right
+		- Rename class, functions, and variables
+		- Removed SIMD intrinsics for simplicity
+		- Replaced macros with functions
+		- Added header guards
+		- Added default round value of 10
+		- Added default seed value and changed the default stream
+		- Added namespace
+		- Changed starting block index from 0 to 1
+		- Changed iterator variable type to uint
+		- Revised keysetup and seed sequence generation
+		
+	Original version of the code can be found at https://gist.github.com/orlp/32f5d1b631ab092608b1
  */
 
 /*
