@@ -10,8 +10,7 @@
 		- Changed matrix and rotational constants
 		- Changed rotation direction from left to right
 		- Rename class, functions, and variables
-		- Removed SIMD intrinsics for simplicity
-		- Replaced macros with functions
+		- Changed SIMD to support AVX2
 		- Added header guards
 		- Added default round value of 10
 		- Added default seed value and changed the default stream
@@ -49,6 +48,9 @@
 #include <iosfwd>
 #include <cstdint>
 #include <limits>
+#ifdef __AVX2__
+#include "immintrin.h"
+#endif
 
 namespace BlaBlaPRNG {
 	
@@ -81,11 +83,8 @@ public:
 private:
 	void generate_block();
 	void blabla_core();
-	void mix_func(int a, int b, int c, int d);
-	
-	static uint64_t rotate_right(uint64_t x, uint32_t n) { return (x >> n) | (x << (64 - n)); }
 
-	uint64_t block[16];
+	alignas(32) uint64_t block[16];
 	uint64_t block_idx;
 
 	uint64_t keysetup[4];
@@ -165,18 +164,75 @@ inline void BlaBla<R>::generate_block() {
 	for (uint32_t i = 0; i < 16; ++i) block[i] += input[i];
 }
 
-
-template<uint32_t R>
-inline void BlaBla<R>::mix_func(int a, int b, int c, int d) {
-	block[a] += block[b]; block[d] ^= block[a]; block[d] = rotate_right(block[d], 32);
-	block[c] += block[d]; block[b] ^= block[c]; block[b] = rotate_right(block[b], 24);
-	block[a] += block[b]; block[d] ^= block[a]; block[d] = rotate_right(block[d], 16);
-	block[c] += block[d]; block[b] ^= block[c]; block[b] = rotate_right(block[b], 63);
-}
-
-
+#ifdef __AVX2__
 template<uint32_t R>
 inline void BlaBla<R>::blabla_core() {
+	#define _mm256_roti_epi64(r, c) _mm256_xor_si256(_mm256_srli_epi64((r), (c)), _mm256_slli_epi64((r), 64-(c)))
+	
+	// ROTVn rotates the elements in the given vector n places to the left.
+	#define CHACHA_ROTV1(x) _mm256_permute4x64_epi64((__m256i) x, 0x39)
+	#define CHACHA_ROTV2(x) _mm256_permute4x64_epi64((__m256i) x, 0x4e)
+	#define CHACHA_ROTV3(x) _mm256_permute4x64_epi64((__m256i) x, 0x93)
+
+	__m256i a = _mm256_load_si256((__m256i*) (block));
+	__m256i b = _mm256_load_si256((__m256i*) (block + 4));
+	__m256i c = _mm256_load_si256((__m256i*) (block + 8));
+	__m256i d = _mm256_load_si256((__m256i*) (block + 12));
+
+	for (uint32_t i = 0; i < R; ++i) {
+		a = _mm256_add_epi64(a, b);
+		d = _mm256_xor_si256(d, a);
+		d = _mm256_roti_epi64(d, 32);
+		c = _mm256_add_epi64(c, d);
+		b = _mm256_xor_si256(b, c);
+		b = _mm256_roti_epi64(b, 24);
+		a = _mm256_add_epi64(a, b);
+		d = _mm256_xor_si256(d, a);
+		d = _mm256_roti_epi64(d, 16);
+		c = _mm256_add_epi64(c, d);
+		b = _mm256_xor_si256(b, c);
+		b = _mm256_roti_epi64(b, 63);
+	
+		b = CHACHA_ROTV1(b);
+		c = CHACHA_ROTV2(c);
+		d = CHACHA_ROTV3(d);
+	
+		a = _mm256_add_epi64(a, b);
+		d = _mm256_xor_si256(d, a);
+		d = _mm256_roti_epi64(d, 32);
+		c = _mm256_add_epi64(c, d);
+		b = _mm256_xor_si256(b, c);
+		b = _mm256_roti_epi64(b, 24);
+		a = _mm256_add_epi64(a, b);
+		d = _mm256_xor_si256(d, a);
+		d = _mm256_roti_epi64(d, 16);
+		c = _mm256_add_epi64(c, d);
+		b = _mm256_xor_si256(b, c);
+		b = _mm256_roti_epi64(b, 63);
+	
+		b = CHACHA_ROTV3(b);
+		c = CHACHA_ROTV2(c);
+		d = CHACHA_ROTV1(d);
+	}
+	_mm256_store_si256((__m256i*) (block), a);
+	_mm256_store_si256((__m256i*) (block + 4), b);
+	_mm256_store_si256((__m256i*) (block + 8), c);
+	_mm256_store_si256((__m256i*) (block + 12), d);
+
+	#undef CHACHA_ROTV3
+	#undef CHACHA_ROTV2
+	#undef CHACHA_ROTV1
+	#undef _mm256_roti_epi64
+}
+#else
+template<uint32_t R>
+inline void BlaBla<R>::blabla_core() {
+	#define rotate_right(x, n) ((x >> n) | (x << (64 - n)))
+	#define mix_func(a, b, c, d) \
+	block[a] += block[b]; block[d] ^= block[a]; block[d] = rotate_right(block[d], 32); \
+	block[c] += block[d]; block[b] ^= block[c]; block[b] = rotate_right(block[b], 24); \
+	block[a] += block[b]; block[d] ^= block[a]; block[d] = rotate_right(block[d], 16); \
+	block[c] += block[d]; block[b] ^= block[c]; block[b] = rotate_right(block[b], 63);
 	for (uint32_t i = 0; i < R; ++i) {
 		mix_func(0, 4,  8, 12);
 		mix_func(1, 5,  9, 13);
@@ -187,7 +243,10 @@ inline void BlaBla<R>::blabla_core() {
 		mix_func(2, 7,  8, 13);
 		mix_func(3, 4,  9, 14);
 	}
+	#undef mix_func
+	#undef rotate_right
 }
+#endif
 
 
 // Implement <random> interface.
