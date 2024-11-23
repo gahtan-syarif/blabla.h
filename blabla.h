@@ -228,11 +228,13 @@ inline void BlaBla<R>::blabla_core() {
 template<uint32_t R>
 inline void BlaBla<R>::blabla_core() {
 	#define rotate_right(x, n) ((x >> n) | (x << (64 - n)))
+	
 	#define mix_func(a, b, c, d) \
-	block[a] += block[b]; block[d] ^= block[a]; block[d] = rotate_right(block[d], 32); \
-	block[c] += block[d]; block[b] ^= block[c]; block[b] = rotate_right(block[b], 24); \
-	block[a] += block[b]; block[d] ^= block[a]; block[d] = rotate_right(block[d], 16); \
-	block[c] += block[d]; block[b] ^= block[c]; block[b] = rotate_right(block[b], 63);
+		block[a] += block[b]; block[d] ^= block[a]; block[d] = rotate_right(block[d], 32); \
+		block[c] += block[d]; block[b] ^= block[c]; block[b] = rotate_right(block[b], 24); \
+		block[a] += block[b]; block[d] ^= block[a]; block[d] = rotate_right(block[d], 16); \
+		block[c] += block[d]; block[b] ^= block[c]; block[b] = rotate_right(block[b], 63);
+		
 	for (uint32_t i = 0; i < R; ++i) {
 		mix_func(0, 4,  8, 12);
 		mix_func(1, 5,  9, 13);
