@@ -69,11 +69,11 @@ public:
 	template<uint32_t R_> friend bool operator==(const BlaBla<R_>& lhs, const BlaBla<R_>& rhs);
 	template<uint32_t R_> friend bool operator!=(const BlaBla<R_>& lhs, const BlaBla<R_>& rhs);
 
-	template<typename CharT, typename Traits>
-	friend std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, Traits>& os, const BlaBla<R>& rng);
+	template<uint32_t R_, typename CharT, typename Traits>
+	friend std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, Traits>& os, const BlaBla<R_>& rng);
 
-	template<typename CharT, typename Traits>
-	friend std::basic_istream<CharT, Traits>& operator>>(std::basic_istream<CharT, Traits>& is, BlaBla<R>& rng);
+	template<uint32_t R_, typename CharT, typename Traits>
+	friend std::basic_istream<CharT, Traits>& operator>>(std::basic_istream<CharT, Traits>& is, BlaBla<R_>& rng);
 
 	static constexpr uint64_t min() { return std::numeric_limits<uint64_t>::min(); }
 	static constexpr uint64_t max() { return std::numeric_limits<uint64_t>::max(); }
@@ -178,7 +178,7 @@ inline void BlaBla<R>::mix_func(int a, int b, int c, int d) {
 template<uint32_t R>
 inline void BlaBla<R>::blabla_core() {
 	for (uint32_t i = 0; i < R; ++i) {
-	    	mix_func(0, 4,  8, 12);
+		mix_func(0, 4,  8, 12);
 		mix_func(1, 5,  9, 13);
 		mix_func(2, 6, 10, 14);
 		mix_func(3, 7, 11, 15);
